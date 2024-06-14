@@ -1,0 +1,24 @@
+# Virtual environments
+venv/
+.venv/
+
+# Compiled Python files (byte-code)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Test/coverage reports
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln.docstates

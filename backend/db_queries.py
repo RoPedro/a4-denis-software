@@ -92,19 +92,5 @@ class Book:
             return False
 
 """
-success = Book.update_title_author(3, new_title="Eu, robô", new_author="Isaac Azimov")
-
-if success:
-    print("Atualizado com sucesso")
-else: 
-    print("Não atualizado.")
-
-books = Book.list_all()
-
-if books:
-    for book in books:
-        print(f"{book.id}, {book.title}, {book.author}, {book.num_copies} cópias")
-else:
-    print("no books found")
-    
+    Códigos para testar o backend vão aqui.
 """

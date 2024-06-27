@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from db_queries import Book
 
 # Inicia o app com rotas para o HTML e Javascript.

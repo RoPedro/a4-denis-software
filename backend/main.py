@@ -14,6 +14,15 @@ def books_json():
                      'num_copies': book.num_copies}
                      for book in books])
 
+@app.route('/insert_json')
+def insert_json():
+    title = request.form['title']
+    author = request.form['author']
+    num_copies = request.form['num_copies']
+
+    new_book = Book(title=title, author=author, num_copies=num_copies)
+    new_book.insert()
+
 # Rota principal para renderizar o HTML.
 @app.route('/')
 def index():

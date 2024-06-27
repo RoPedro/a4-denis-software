@@ -20,3 +20,12 @@ function fetchBooksAndPopulate() {
             });
         });
 }
+function adicionarLivro() {
+    // fazer requisição para API ou banco de dados para adicionar livro
+    // e renderizar a lista de livros
+}// adicionar eventos aos botões
+adicionarLivro.addEventListener('click', adicionarLivro);
+removerLivro.addEventListener('click', removerLivro);
+atualizarLivro.addEventListener('click', atualizarLivro);
+const addBookModal = document.getElementById('addBookModal');
+const addBookBtn = document.getElementById('add-book-btn');

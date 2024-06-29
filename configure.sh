@@ -38,10 +38,10 @@ if [ -f  ]; then
     fi
 fi
 
-# Desativa o virtual enviroment
-echo "Deseja desativar o venv? (s/n)"
+# Desativa o virtual enviroment (Opcional)
+echo "Deseja manter o venv ativado? (s/n) (Mantenha ativado para testar o código)"
 read ANSWER
-if [ "$ANSWER" = "s" ]; then
+if [ "$ANSWER" = "n" ]; then
     deactivate
 fi
 

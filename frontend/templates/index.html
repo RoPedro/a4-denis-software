@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca Fictícia</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
 <body>
     <div class="container">
@@ -31,12 +32,13 @@
         <table class="table table-striped" id="book-list" >
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Título</th>
                     <th>Autor</th>
                     <th>Número de Cópias</th>
                 </tr>
             </thead>
-            </tbody>
+            <tbody id="book_tbody"></tbody>
         </table>
         
         <button class="btn btn-success" id="adicionar-livro" data-bs-toggle="modal" data-bs-target="#addBookModal">Adicionar Livro</button>  

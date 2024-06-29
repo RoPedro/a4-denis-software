@@ -39,8 +39,9 @@ IF EXIST requirements.txt (
 )
 
 :: Desativa o virtual environment (opcional)
-echo Deseja desativar o venv? (s/n)
+echo MANTENHA O VENV ATIVADO CASO DESEJE TESTAR O CÓDIGO
+echo Deseja manter o venv ativado? (s/n)
 SET /P ANSWER=
-IF /I "%ANSWER%"=="s" (
+IF /I "%ANSWER%"=="n" (
     CALL deactivate
 )

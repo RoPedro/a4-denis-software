@@ -4,7 +4,7 @@ from sqlalchemy import text
 connection = engine.connect()
 
 class Book:
-    def __init__(self, id, title, author, num_copies):
+    def __init__(self, title, author, num_copies, id=None):
         self.id = id
         self.title = title
         self.author = author
@@ -14,7 +14,7 @@ class Book:
     @classmethod
     def list_all(cls):
         try:
-            query = text("SELECT * FROM books;")
+            query = text("SELECT title, author, num_copies, id FROM books;")
             result = connection.execute(query)
             
             book_list = []

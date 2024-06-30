@@ -17,6 +17,7 @@ class Book:
             query = text("SELECT title, author, num_copies, id FROM books;")
             result = connection.execute(query)
             
+            # Popula uma lista com os livros
             book_list = []
             for row in result:
                 book = cls(*row)
@@ -48,8 +49,13 @@ class Book:
         try:
             with engine.begin() as conn: # Begin para começar uma transação
                 query = text("DELETE FROM books WHERE id = :book_id")
-                conn.execute(query, {"book_id": book_id})
-            return True
+                result = conn.execute(query, {"book_id": book_id})
+               
+                # Checa se algum registro foi modificado 
+                if result.rowcount == 0:
+                    return False
+                else:
+                    return True 
         except Exception as e:
             print(f"Error deleting book by ID: {e}")
             return False 

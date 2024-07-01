@@ -43,6 +43,7 @@ function fetchBooksAndPopulate() {
         });
 }
 
+// Função para adicionar um novo livro
 function adicionarLivro() {
     const titleInput = document.getElementById('titulo');
     const authorInput = document.getElementById('autor-modal');
@@ -81,4 +82,38 @@ function adicionarLivro() {
         console.error('ERROR:', error);
         alert('Erro ao adicionar livro');
     });
+}
+
+// Exclui um livro de forma assíncrona
+async function deleteBook() {
+    // ID Dummy (Modificar para pegar o valor no HTML)
+    const dummyId = 13;
+
+    try {
+        const response = await fetch('/delete_json', { // Envia o ID para o servidor
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ book_id: dummyId })
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text() || 'Erro ao excluir livro');
+        }
+
+        const data = await response.json();
+        alert(data.message);
+    
+        // Muda a mensagem de erro de acordo com o tipo de erro
+    } catch (error) {
+        if (error.message.includes('Livro não encontrado')) {
+            alert('Livro não encontrado');
+        } else if(error.message.includes('ID do livro inválido')){
+            alert('ID do livro inválido');
+        }else {
+            console.error('ERROR:', error);
+            alert('Erro ao excluir livro');
+        }
+    }
 }

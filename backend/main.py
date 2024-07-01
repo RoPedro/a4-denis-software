@@ -1,4 +1,5 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request 
+import json
 from db_queries import Book
 
 # Inicia o app com rotas para o HTML e Javascript.
@@ -20,6 +21,7 @@ def books_json():
         'num_copies': book.num_copies
     } for book in books])
 
+# Rota para inserção de livros.
 @app.route('/insert_json', methods=['POST'])
 def insert_json():
     # Recebe os dados do formulário
@@ -36,8 +38,28 @@ def insert_json():
         return jsonify({'status': 'success', 'message': 'Livro adicionado com sucesso!'})
     else:
         return jsonify({'status': 'error', 'message': 'Erro ao adicionar o livro.'})
-    
 
+# Roda para exclusão de livros
+@app.route('/delete_json', methods=['DELETE'])
+def delete_book_by_id():
+    data = request.get_json()
+    if data is None:
+        return jsonify({'status': 'error', 'message': 'JSON não encontrado'}), 400
+    book_id = data.get('book_id')
+
+    # Checa se o ID do livro é valido
+    if not isinstance(book_id, int): 
+        try:
+            book_id = int(book_id)
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
+
+    # Retorna diferentes respostas dependendo do sucesso da transação
+    success = Book.delete_book(book_id)
+    if success:
+        return jsonify({'status': 'success', 'message': 'Livro excluído com sucesso'}), 200
+    else:
+        return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
 # Habilita o Debug mode
 if __name__ == '__main__':

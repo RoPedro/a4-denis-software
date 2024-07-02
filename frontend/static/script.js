@@ -117,3 +117,41 @@ async function deleteBook() {
         }
     }
 }
+
+async function updateBook() {
+    // Dummy data
+    const dummyId = 11;
+    const dummyTitle = '';
+    const dummyAuthor = ''; 
+
+    // Armazena o que será atualizado
+    const updateData = {};
+
+    // Checa se algum dos campos estão preenchidos e passa para updateData
+    if (dummyTitle) updateData.title = dummyTitle;
+    if (dummyAuthor) updateData.author = dummyAuthor;
+
+    try {
+        // Manda request apenas se existir algo a se atualizar.
+        if (Object.keys(updateData).length > 0) {
+            const response = await fetch('/update_details_json', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ book_id: dummyId, ...updateData }) // Combina ID com dados a serem atualizados
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text() || 'Erro ao atualizar livro');
+            }
+
+            const data = await response.json();
+            alert(data.message);
+        } else {
+            alert('Nada a atualizar, por favor, preencha pelo menos um campo');
+        }
+    } catch (error) {
+        alert('ERRO: ' + error.message);
+    }
+}

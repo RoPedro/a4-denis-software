@@ -61,6 +61,29 @@ def delete_book_by_id():
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
+@app.route('/update_details_json' , methods=['PUT'])
+def update_book_details_by_id():
+    data = request.get_json()
+    if data is None:
+        return jsonify({'status': 'error', 'message': 'JSON não encontrado'}), 400
+    book_id = data.get('book_id')
+    new_title = data.get('title')
+    new_author = data.get('author')
+
+    # Checa se o ID do livro é valido
+    if not isinstance(book_id, int): 
+        try:
+            book_id = int(book_id)
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
+
+    # Retorna diferentes respostas dependendo do sucesso da transação
+    success = Book.update_title_author(book_id, new_title, new_author)
+    if success:
+        return jsonify({'status': 'success', 'message': 'Livro atualizado com sucesso'}), 200
+    else:
+        return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
+
 # Habilita o Debug mode
 if __name__ == '__main__':
     app.run(debug=True)

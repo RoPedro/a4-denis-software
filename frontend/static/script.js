@@ -228,8 +228,8 @@ async function updateBook() {
 
     const updateData = {};
 
-    if (titleInput.value !== '') updateData.title = titleInput.value;
-    if (authorInput.value !== '') updateData.author = authorInput.value;
+    if (titleInput.value!== '') updateData.title = titleInput.value;
+    if (authorInput.value!== '') updateData.author = authorInput.value;
 
     try {
         if (Object.keys(updateData).length > 0) {
@@ -238,7 +238,7 @@ async function updateBook() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ book_id: bookIdInput.value, ...updateData }) // Combina ID com dados a serem atualizados
+                body: JSON.stringify({ book_id: bookIdInput.value,...updateData }) // Combina ID com dados a serem atualizados
             });
 
             if (!response.ok) {

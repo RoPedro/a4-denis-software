@@ -117,6 +117,68 @@ async function deleteBook() {
         }
     }
 }
+function fetchBooksAndPopulate() {
+    fetch('/books_json')
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json()
+        })
+        .then(books => {
+            console.log(books);
+            const bookList = document.getElementById('book_tbody');
+
+            bookList.innerHTML = '';
+
+            books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.id}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.num_copies}</td>
+                    <td><i class="fas fa-trash-alt text-danger" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
+                `;
+                bookList.appendChild(row);
+            });
+        });
+}
+
+function confirmDelete(bookId, bookTitle) {
+    if (confirm(`Confirma exclusão do livro ${bookTitle}?`)) {
+        deleteBook(bookId);
+    }
+}
+
+async function deleteBook(bookId) {
+    try {
+        const response = await fetch('/delete_json', { // Envia o ID para o servidor
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ book_id: bookId })
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text() || 'Erro ao excluir livro');
+        }
+
+        const data = await response.json();
+        alert(data.message);
+    
+        // Muda a mensagem de erro de acordo com o tipo de erro
+    } catch (error) {
+        if (error.message.includes('Livro não encontrado')) {
+            alert('Livro não encontrado');
+        } else if(error.message.includes('ID do livro inválido')){
+            alert('ID do livro inválido');
+        }else {
+            console.error('ERROR:', error);
+            alert('Erro ao excluir livro');
+        }
+    }
+}
+
 
 async function updateBook() {
     // Dummy data

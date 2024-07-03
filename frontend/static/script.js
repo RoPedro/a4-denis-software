@@ -178,6 +178,83 @@ async function deleteBook(bookId) {
         }
     }
 }
+function fetchBooksAndPopulate() {
+    fetch('/books_json')
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json()
+        })
+        .then(books => {
+            console.log(books);
+            const bookList = document.getElementById('book_tbody');
+
+            bookList.innerHTML = '';
+
+            books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.id}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.num_copies}</td>
+                    <td>
+                        <i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i>
+                        <i class="fas fa-pen text-info" style="cursor: pointer; margin-left: 5px;" onclick="editBook(${book.id}, '${book.title}', '${book.author}')"></i>
+                    </td>
+                `;
+                bookList.appendChild(row);
+            });
+        });
+}
+
+function editBook(bookId, bookTitle, bookAuthor) {
+    const editModal = document.getElementById('editBookModal');
+    const titleInput = document.getElementById('titulo-edit');
+    const authorInput = document.getElementById('autor-edit');
+    const bookIdInput = document.getElementById('book-id-edit');
+
+    titleInput.value = bookTitle;
+    authorInput.value = bookAuthor;
+    bookIdInput.value = bookId;
+
+    editModal.style.display = 'block';
+}
+
+async function updateBook() {
+    const editModal = document.getElementById('editBookModal');
+    const titleInput = document.getElementById('titulo-edit');
+    const authorInput = document.getElementById('autor-edit');
+    const bookIdInput = document.getElementById('book-id-edit');
+
+    const updateData = {};
+
+    if (titleInput.value !== '') updateData.title = titleInput.value;
+    if (authorInput.value !== '') updateData.author = authorInput.value;
+
+    try {
+        if (Object.keys(updateData).length > 0) {
+            const response = await fetch('/update_details_json', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ book_id: bookIdInput.value, ...updateData }) // Combina ID com dados a serem atualizados
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text() || 'Erro ao atualizar livro');
+            }
+
+            const data = await response.json();
+            alert(data.message);
+            editModal.style.display = 'none';
+        } else {
+            alert('Nada a atualizar, por favor, preencha pelo menos um campo');
+        }
+    } catch (error) {
+        alert('ERRO: ' + error.message);
+    }
+}
 
 
 async function updateBook() {

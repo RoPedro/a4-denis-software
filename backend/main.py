@@ -1,6 +1,10 @@
 from flask import Flask, render_template, jsonify, request 
-import json
 from db_queries import Book
+from db_connect import engine
+from db_daos import BookDAO
+
+connection = engine.connect()
+book_dao = BookDAO(connection)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
@@ -13,7 +17,7 @@ def index():
 # Rota para retornar a lista de livros.
 @app.route('/books_json')
 def books_json():
-    books = Book.list_all()
+    books = book_dao.list_all() 
     return jsonify([{
         'id': book.id,
         'title': book.title,

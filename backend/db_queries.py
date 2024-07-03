@@ -10,26 +10,6 @@ class Book:
         self.author = author
         self.num_copies = num_copies
 
-    # Método para listar todos os livros
-    @classmethod
-    def list_all(cls):
-        try:
-            query = text("SELECT title, author, num_copies, id FROM books;")
-            result = connection.execute(query)
-            
-            # Popula uma lista com os livros
-            book_list = []
-            for row in result:
-                book = cls(*row)
-                book_list.append(book)
-            
-            return book_list
-            
-        except Exception as e:
-            print(e)
-            return []
-    
-    # Método para adicionar um novo livro 
     @classmethod
     def add_book(cls, title, author, num_copies):
         try:

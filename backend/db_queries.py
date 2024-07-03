@@ -10,19 +10,6 @@ class Book:
         self.author = author
         self.num_copies = num_copies
 
-    @classmethod
-    def add_book(cls, title, author, num_copies):
-        try:
-            with engine.begin() as conn: # Begin para começar uma transação
-                query = text(
-                    "INSERT INTO books (title, author, num_copies) VALUES (:title, :author, :num_copies);"
-                    )
-                conn.execute(query, {"title": title, "author": author, "num_copies": num_copies})  # Pass parameters as a dictionary
-            return True
-        except Exception as e:
-            print(f"Erro adicionando livro: {e}")
-            return False
-    
     # Método para excluir um livro por ID
     @classmethod
     def delete_book(cls, book_id):

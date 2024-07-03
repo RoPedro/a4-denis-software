@@ -21,3 +21,31 @@ class BookDAO:
         except Exception as e:
             print(e)
             return []
+        
+    def add_book(self, title, author, num_copies):
+        transaction = None
+        try:
+            query = text(
+                "INSERT INTO books (title, author, num_copies) VALUES (:title, :author, :num_copies);"
+            )
+            # Inicia a transação apenas se nenhuma transação estiver ativa
+            if not self.connection.in_transaction():
+                transaction = self.connection.begin()
+            
+            self.connection.execute(
+                query,
+                {
+                    "title": title,
+                    "author": author,
+                    "num_copies": num_copies,
+                },
+            )
+            
+            if transaction:
+                transaction.commit()  # Confirma a transação apenas se foi iniciada
+            return True
+        except Exception as e:
+            if transaction:
+                transaction.rollback()  # Cancela a transação apenas se foi iniciada
+            print(f"Erro adicionando livro: {e}")
+            return False

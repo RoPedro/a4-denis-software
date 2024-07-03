@@ -35,7 +35,8 @@ def insert_json():
 
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
-    success = new_book.add_book(title, author, num_copies)
+
+    success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
    
     # Adereça um resultado dependendo do sucesso da transação 
     if success:

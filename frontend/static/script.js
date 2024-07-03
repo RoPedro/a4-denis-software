@@ -136,7 +136,7 @@ function fetchBooksAndPopulate() {
                     <td>${book.title}</td>
                     <td>${book.author}</td>
                     <td>${book.num_copies}</td>
-                    <td><i class="fas fa-trash-alt text-danger" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
+                    <td><i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
                 `;
                 bookList.appendChild(row);
             });

@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from db_queries import Book
+from backend.db_livro import Book
 import logging
 
 # Inicializando LOGS

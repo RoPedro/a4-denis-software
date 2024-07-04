@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request 
-from db_queries import Book
+from db_livro import Book
 from db_connect import engine
 from db_daos import BookDAO
 

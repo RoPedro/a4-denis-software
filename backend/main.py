@@ -24,6 +24,11 @@ def books_json():
         'author': book.author,
         'num_copies': book.num_copies
     } for book in books])
+    
+@app.route('/authors_json', methods=['GET'])
+def authors_json():
+    authors = book_dao.list_authors()
+    return jsonify(authors)
 
 # Rota para inserção de livros.
 @app.route('/insert_json', methods=['POST'])
@@ -35,7 +40,6 @@ def insert_json():
 
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
-
     success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
    
     # Adereça um resultado dependendo do sucesso da transação 

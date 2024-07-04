@@ -132,10 +132,10 @@ class BookDAO:
 
             if new_title is not None:
                 updates.append("title = :new_title")
-                params["new_title"] = new_title
+                params["new_title"] = new_title.replace("'", "''")
             if new_author is not None:
                 updates.append("author = :new_author")
-                params["new_author"] = new_author
+                params["new_author"] = new_author.replace("'", "''")
             if new_num_copies is not None:
                 updates.append("num_copies = :new_num_copies")
                 params["new_num_copies"] = new_num_copies

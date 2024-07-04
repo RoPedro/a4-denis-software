@@ -163,45 +163,7 @@ function editBook(bookId, bookTitle, bookAuthor, bookCopies) {
     };
 }
 
-/*async function updateBook() {
-    const editModal = document.getElementById('editBookModal');
-    const titleInput = document.getElementById('titulo-edit');
-    const authorInput = document.getElementById('autor-edit');
-    const bookIdInput = document.getElementById('book-id-edit');
-
-    const updateData = {};
-
-    if (titleInput.value !== '') updateData.title = titleInput.value;
-    if (authorInput.value !== '') updateData.author = authorInput.value;
-
-    try {
-        if (Object.keys(updateData).length > 0) {
-            const response = await fetch('/update_details_json', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ book_id: bookIdInput.value, ...updateData }) // Combina ID com dados a serem atualizados
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text() || 'Erro ao atualizar livro');
-            }
-
-            const data = await response.json();
-            alert(data.message);
-            editModal.style.display = 'none';
-        } else {
-            alert('Nada a atualizar, por favor, preencha pelo menos um campo');
-        }
-    } catch (error) {
-        alert('ERRO: ' + error.message);
-    }
-}*/
-
-
 async function updateBook(book_id, title, author, num_copies) {
-    // Dummy data
     const titleInput = prompt('Título:', title);
     const authorInput = prompt('Autor:', author); 
     const copiesInput = prompt('Quantidade de Cópias:', num_copies);

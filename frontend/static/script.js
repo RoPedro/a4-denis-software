@@ -1,20 +1,18 @@
 // Espera o DOM carregar completamente
 document.addEventListener('DOMContentLoaded', () => {
     fetchBooksAndPopulate();
+    fetchAuthors();
+
     
     // ---------------------------------------------------------
 
     const addBookBtn = document.getElementById('add-book-btn');
-    const addBookModal = document.getElementById('addBookModal');
 
     addBookBtn.addEventListener('click', adicionarLivro);
-
-    /*
-    removerLivro.addEventListener('click', removerLivro);
-    atualizarLivro.addEventListener('click', atualizarLivro);
-    const addBookModal = document.getElementById('addBookModal');
-    const addBookBtn = document.getElementById('add-book-btn');
-    */
+    document.getElementById('author-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        list_books_by_author();
+    });
 });
 
 // Função para buscar os livros e popular o DOM
@@ -32,6 +30,55 @@ function fetchBooksAndPopulate() {
             bookList.innerHTML = '';
 
             books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.id}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.num_copies}</td>
+                    <td><i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
+                    <td><i class="fas fa-edit text-primary" style="cursor: pointer;" onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.num_copies})"></i></td>
+                `;
+                bookList.appendChild(row);
+            });
+        });
+}
+
+function fetchAuthors() {
+    fetch('/authors_json')
+        .then(response => {
+            return response.json();
+        })
+        .then(authors => {
+            const authorSelect = document.getElementById('authorSelect');
+            authors.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author.id;
+                option.textContent = author.name;
+                authorSelect.appendChild(option);
+            });
+        });
+}
+
+function list_books_by_author() {
+    const authorSelect = document.getElementById('authorSelect');
+    const authorName = authorSelect.options[authorSelect.selectedIndex].text;
+    fetchBooksByAuthor(authorName);
+}
+
+function fetchBooksByAuthor(authorName) {
+    fetch(`books_by_author_json?author_name=${authorName}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na requisição ${response.status}`);
+            }
+
+            return response.json();
+        })
+        .then(books => {
+            const bookList = document.getElementById('book_tbody');
+            bookList.innerHTML = '';
+            books.forEach(book => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${book.id}</td>

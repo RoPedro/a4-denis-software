@@ -1,6 +1,10 @@
 from flask import Flask, render_template, jsonify, request 
-import json
 from db_queries import Book
+from db_connect import engine
+from db_daos import BookDAO
+
+connection = engine.connect()
+book_dao = BookDAO(connection)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
@@ -13,7 +17,7 @@ def index():
 # Rota para retornar a lista de livros.
 @app.route('/books_json')
 def books_json():
-    books = Book.list_all()
+    books = book_dao.list_all() 
     return jsonify([{
         'id': book.id,
         'title': book.title,
@@ -31,7 +35,8 @@ def insert_json():
 
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
-    success = new_book.add_book(title, author, num_copies)
+
+    success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
    
     # Adereça um resultado dependendo do sucesso da transação 
     if success:
@@ -55,20 +60,21 @@ def delete_book_by_id():
             return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
 
     # Retorna diferentes respostas dependendo do sucesso da transação
-    success = Book.delete_book(book_id)
+    success = book_dao.delete_book(book_id)
     if success:
         return jsonify({'status': 'success', 'message': 'Livro excluído com sucesso'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
-@app.route('/update_details_json' , methods=['PUT'])
-def update_book_details_by_id():
+@app.route('/update_book_json' , methods=['PUT'])
+def update_book():
     data = request.get_json()
     if data is None:
         return jsonify({'status': 'error', 'message': 'JSON não encontrado'}), 400
     book_id = data.get('book_id')
     new_title = data.get('title')
     new_author = data.get('author')
+    new_num_copies = data.get('num_copies')
 
     # Checa se o ID do livro é valido
     if not isinstance(book_id, int): 
@@ -78,7 +84,7 @@ def update_book_details_by_id():
             return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
 
     # Retorna diferentes respostas dependendo do sucesso da transação
-    success = Book.update_title_author(book_id, new_title, new_author)
+    success = book_dao.update_book(book_id, new_title, new_author, new_num_copies)
     if success:
         return jsonify({'status': 'success', 'message': 'Livro atualizado com sucesso'}), 200
     else:

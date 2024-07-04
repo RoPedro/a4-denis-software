@@ -98,18 +98,18 @@ def update_book():
         except ValueError:
             return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
 
+    # Tentativa de escapar caractéres especiais 
+    if new_title:
+        new_title = new_title.replace("'", "''")
+    if new_author:
+        new_author = new_author.replace("'", "''")
+
     # Retorna diferentes respostas dependendo do sucesso da transação
     success = book_dao.update_book(book_id, new_title, new_author, new_num_copies)
     if success:
         return jsonify({'status': 'success', 'message': 'Livro atualizado com sucesso'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
-
-# Test
-author_name = 'Yuval Noah Harari'
-books = book_dao.list_books_by_author(author_name)
-for book in books:
-    print(book)
 
 # Habilita o Debug mode
 if __name__ == '__main__':

@@ -7,11 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------
 
     const addBookBtn = document.getElementById('add-book-btn');
+    const showAllBtn = document.getElementById('show-all-btn');
 
     addBookBtn.addEventListener('click', adicionarLivro);
     document.getElementById('author-form').addEventListener('submit', function(event) {
         event.preventDefault();
         list_books_by_author();
+    });
+
+    showAllBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        fetchBooksAndPopulate();
     });
 });
 
@@ -63,6 +69,12 @@ function fetchAuthors() {
 function list_books_by_author() {
     const authorSelect = document.getElementById('authorSelect');
     const authorName = authorSelect.options[authorSelect.selectedIndex].text;
+
+    if (authorName === '-- Selecione um autor --') {
+        fetchBooksAndPopulate();
+        alert('Por favor, selecione um autor');
+        return;
+    }
     fetchBooksByAuthor(authorName);
 }
 
@@ -89,8 +101,8 @@ function fetchBooksByAuthor(authorName) {
                     <td><i class="fas fa-edit text-primary" style="cursor: pointer;" onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.num_copies})"></i></td>
                 `;
                 bookList.appendChild(row);
-            });
         });
+    });
 }
 
 // Função para adicionar um novo livro
@@ -116,14 +128,17 @@ function adicionarLivro() {
             return response.text().then(text => {
                 throw new Error(text || 'Erro ao adicionar livro');
             });
+        } else{
+            fetchBooksAndPopulate();
         }
         return response.json();
     })
     .then(data => {
         alert(data.message);
-        // Hide the modal
+        // Fecha a janela modal
         bootstrap.Modal.getInstance(addBookModal).hide();
-        // Clear input fields
+
+        // Limpa os campos
         titleInput.value = '';
         authorInput.value = '';
         numCopiesInput.value = '';
@@ -150,11 +165,10 @@ async function deleteBook() {
 
         if (!response.ok) {
             throw new Error(await response.text() || 'Erro ao excluir livro');
+        } else {
+            fetchBooksAndPopulate();
         }
 
-        const data = await response.json();
-        alert(data.message);
-    
         // Muda a mensagem de erro de acordo com o tipo de erro
     } catch (error) {
         if (error.message.includes('Livro não encontrado')) {
@@ -186,6 +200,9 @@ async function deleteBook(bookId) {
 
         if (!response.ok) {
             throw new Error(await response.text() || 'Erro ao excluir livro');
+        } else {
+            alert('Livro excluído com sucesso');
+            fetchBooksAndPopulate();
         }
 
         const data = await response.json();
@@ -211,16 +228,20 @@ function editBook(bookId, bookTitle, bookAuthor, bookCopies) {
 }
 
 async function updateBook(book_id, title, author, num_copies) {
-    const titleInput = prompt('Título:', title);
-    const authorInput = prompt('Autor:', author); 
+    // Escapa caractéres especiais
+    const escapedTitle = title.replace(/'/g, "''");
+    const escapedAuthor = author.replace(/'/g, "''");
+    
+    const titleInput = prompt('Título:', escapedTitle);
+    const authorInput = prompt('Autor:', escapedAuthor); 
     const copiesInput = prompt('Quantidade de Cópias:', num_copies);
 
     // Armazena o que será atualizado
     const updateData = {};
 
     // Checa se algum dos campos estão preenchidos e passa para updateData
-    if (titleInput) updateData.title = titleInput;
-    if (authorInput) updateData.author = authorInput;
+    if (titleInput) updateData.title = titleInput.replace(/''/g, "'"); // Tentativa de escapar caractéres especiais 
+    if (authorInput) updateData.author = authorInput.replace(/''/g, "'"); 
     if (copiesInput) updateData.num_copies = copiesInput;
 
     try {
@@ -238,6 +259,7 @@ async function updateBook(book_id, title, author, num_copies) {
                 throw new Error(await response.text() || 'Erro ao atualizar livro');
             } else {
                 fetchBooksAndPopulate();
+                fetchAuthors();
             }
 
             const data = await response.json();

@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Função para buscar os livros e popular o DOM
+
 function fetchBooksAndPopulate() {
     fetch('/books_json')
         .then(response => {
@@ -37,6 +38,8 @@ function fetchBooksAndPopulate() {
                     <td>${book.title}</td>
                     <td>${book.author}</td>
                     <td>${book.num_copies}</td>
+                    <td><i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
+                    <td><i class="fas fa-edit text-primary" style="cursor: pointer;" onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.num_copies})"></i></td>
                 `;
                 bookList.appendChild(row);
             });
@@ -117,34 +120,9 @@ async function deleteBook() {
         }
     }
 }
-function fetchBooksAndPopulate() {
-    fetch('/books_json')
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json()
-        })
-        .then(books => {
-            console.log(books);
-            const bookList = document.getElementById('book_tbody');
-
-            bookList.innerHTML = '';
-
-            books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${book.id}</td>
-                    <td>${book.title}</td>
-                    <td>${book.author}</td>
-                    <td>${book.num_copies}</td>
-                    <td><i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i></td>
-                `;
-                bookList.appendChild(row);
-            });
-        });
-}
 
 function confirmDelete(bookId, bookTitle) {
-    if (confirm(`Confirma exclusão do livro ${bookTitle}?`)) {
+    if (confirm(`ESTA AÇÃO NÃO PODE SER DESFEITA. Deseja excluir o livro ${bookTitle}?`)) {
         deleteBook(bookId);
     }
 }
@@ -178,49 +156,14 @@ async function deleteBook(bookId) {
         }
     }
 }
-function fetchBooksAndPopulate() {
-    fetch('/books_json')
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json()
-        })
-        .then(books => {
-            console.log(books);
-            const bookList = document.getElementById('book_tbody');
 
-            bookList.innerHTML = '';
-
-            books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${book.id}</td>
-                    <td>${book.title}</td>
-                    <td>${book.author}</td>
-                    <td>${book.num_copies}</td>
-                    <td>
-                        <i class="fas fa-trash-alt text-danger" style="cursor: pointer;" onclick="confirmDelete(${book.id}, '${book.title}')"></i>
-                        <i class="fas fa-pen text-info" style="cursor: pointer; margin-left: 5px;" onclick="editBook(${book.id}, '${book.title}', '${book.author}')"></i>
-                    </td>
-                `;
-                bookList.appendChild(row);
-            });
-        });
+function editBook(bookId, bookTitle, bookAuthor, bookCopies) {
+    if (confirm(`${bookTitle} será editado, continuar?`)) {
+        updateBook(bookId, bookTitle, bookAuthor, bookCopies);
+    };
 }
 
-function editBook(bookId, bookTitle, bookAuthor) {
-    const editModal = document.getElementById('editBookModal');
-    const titleInput = document.getElementById('titulo-edit');
-    const authorInput = document.getElementById('autor-edit');
-    const bookIdInput = document.getElementById('book-id-edit');
-
-    titleInput.value = bookTitle;
-    authorInput.value = bookAuthor;
-    bookIdInput.value = bookId;
-
-    editModal.style.display = 'block';
-}
-
-async function updateBook() {
+/*async function updateBook() {
     const editModal = document.getElementById('editBookModal');
     const titleInput = document.getElementById('titulo-edit');
     const authorInput = document.getElementById('autor-edit');
@@ -254,35 +197,38 @@ async function updateBook() {
     } catch (error) {
         alert('ERRO: ' + error.message);
     }
-}
+}*/
 
 
-async function updateBook() {
+async function updateBook(book_id, title, author, num_copies) {
     // Dummy data
-    const dummyId = 11;
-    const dummyTitle = '';
-    const dummyAuthor = ''; 
+    const titleInput = prompt('Título:', title);
+    const authorInput = prompt('Autor:', author); 
+    const copiesInput = prompt('Quantidade de Cópias:', num_copies);
 
     // Armazena o que será atualizado
     const updateData = {};
 
     // Checa se algum dos campos estão preenchidos e passa para updateData
-    if (dummyTitle) updateData.title = dummyTitle;
-    if (dummyAuthor) updateData.author = dummyAuthor;
+    if (titleInput) updateData.title = titleInput;
+    if (authorInput) updateData.author = authorInput;
+    if (copiesInput) updateData.num_copies = copiesInput;
 
     try {
         // Manda request apenas se existir algo a se atualizar.
         if (Object.keys(updateData).length > 0) {
-            const response = await fetch('/update_details_json', {
+            const response = await fetch('/update_book_json', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ book_id: dummyId, ...updateData }) // Combina ID com dados a serem atualizados
+                body: JSON.stringify({ book_id: book_id, ...updateData }) // Combina ID com dados a serem atualizados
             });
 
             if (!response.ok) {
                 throw new Error(await response.text() || 'Erro ao atualizar livro');
+            } else {
+                fetchBooksAndPopulate();
             }
 
             const data = await response.json();

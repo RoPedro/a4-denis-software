@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from db_queries import Book
+from db_livro import Book
 import logging
 
 # Inicializando LOGS
@@ -38,16 +38,27 @@ class BookDAO:
             result = self.connection.execute(query)
             
             # Popula uma lista com os autores
-            author_list = []
-            for row in result:
-                author = row[0]
-                author_list.append(author)
-            
-            
-            return author_list
-            
+            authors = [{"id": i + 1, "name": author[0]} for i, author in enumerate(result)] 
+            return authors
+        
         except Exception as e:
+            logging.error(f"Erro ao recuperar a tabela: {e}")
             print(e)
+            return []
+    
+    def list_books_by_author(self, author_name):
+        try:
+            logger.info(f"Trying to connect to database...")
+            query = text("SELECT title, author, num_copies, id FROM books WHERE author = :author_name;")
+            result = self.connection.execute(query, {"author_name": author_name})
+            logger.info(f"Database connection established successfully.")
+
+            book_list = [Book(*row) for row in result]
+            logger.info(f"Retrieved {len(book_list)} books for author '{author_name}'.")
+            return book_list
+
+        except Exception as e:
+            logger.error(f"Error retrieving books for author '{author_name}': {e}")
             return []
     
     # Adiciona um novo livro 
@@ -96,7 +107,6 @@ class BookDAO:
             # Checa se algum registro foi modificado 
             if result.rowcount == 0:
                 return False
-                logger.info("Nenhum registro foi modificado. rowcount = 0")
             else:
                 if transaction: # Confirma a transação apenas se foi iniciada
                     transaction.commit() # Confirma a transação
@@ -149,3 +159,4 @@ class BookDAO:
                 transaction.rollback()
                 logger.error(f"ROLLBACK acionado, erro atualizando livro: {e}")
             return False
+        

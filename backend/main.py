@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request 
-from db_queries import Book
+from db_livro import Book
 from db_connect import engine
 from db_daos import BookDAO
 
@@ -24,6 +24,22 @@ def books_json():
         'author': book.author,
         'num_copies': book.num_copies
     } for book in books])
+    
+@app.route('/authors_json', methods=['GET'])
+def authors_json():
+    authors = book_dao.list_authors()
+    return jsonify(authors)
+
+@app.route('/books_by_author_json', methods=['GET'])
+def list_by_author_json():
+    author_name = request.args.get('author_name')
+    books = book_dao.list_books_by_author(author_name)
+    return jsonify([{
+        'id': book.id,
+        'title': book.title,
+        'author': book.author,
+        'num_copies': book.num_copies
+    } for book in books])
 
 # Rota para inserção de livros.
 @app.route('/insert_json', methods=['POST'])
@@ -35,7 +51,6 @@ def insert_json():
 
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
-
     success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
    
     # Adereça um resultado dependendo do sucesso da transação 
@@ -89,6 +104,12 @@ def update_book():
         return jsonify({'status': 'success', 'message': 'Livro atualizado com sucesso'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
+
+# Test
+author_name = 'Yuval Noah Harari'
+books = book_dao.list_books_by_author(author_name)
+for book in books:
+    print(book)
 
 # Habilita o Debug mode
 if __name__ == '__main__':

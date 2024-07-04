@@ -60,7 +60,7 @@ def delete_book_by_id():
             return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
 
     # Retorna diferentes respostas dependendo do sucesso da transação
-    success = Book.delete_book(book_id)
+    success = book_dao.delete_book(book_id)
     if success:
         return jsonify({'status': 'success', 'message': 'Livro excluído com sucesso'}), 200
     else:

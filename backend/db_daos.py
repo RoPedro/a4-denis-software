@@ -49,3 +49,27 @@ class BookDAO:
                 transaction.rollback()  # Cancela a transação apenas se foi iniciada
             print(f"Erro adicionando livro: {e}")
             return False
+        
+    def delete_book(self, book_id):
+        transaction = None
+        try:
+            query = text("DELETE FROM books WHERE id = :book_id")
+            
+            if not self.connection.in_transaction():
+                transaction = self.connection.begin()
+            
+            # Executa a query
+            result = self.connection.execute(query, {"book_id": book_id})
+            
+            # Checa se algum registro foi modificado 
+            if result.rowcount == 0:
+                return False
+            else:
+                if transaction:
+                    transaction.commit()  # Confirma a transação apenas se foi iniciada
+                return True
+        except Exception as e:
+            if transaction:
+                transaction.rollback()  # Cancela a transação apenas se foi iniciada
+            print(f"Error deleting book by ID: {e}")
+            return False 

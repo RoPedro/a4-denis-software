@@ -10,23 +10,6 @@ class Book:
         self.author = author
         self.num_copies = num_copies
 
-    # Método para excluir um livro por ID
-    @classmethod
-    def delete_book(cls, book_id):
-        try:
-            with engine.begin() as conn: # Begin para começar uma transação
-                query = text("DELETE FROM books WHERE id = :book_id")
-                result = conn.execute(query, {"book_id": book_id})
-               
-                # Checa se algum registro foi modificado 
-                if result.rowcount == 0:
-                    return False
-                else:
-                    return True 
-        except Exception as e:
-            print(f"Error deleting book by ID: {e}")
-            return False 
-   
     # Método para atualizar o título e o autor
     @classmethod
     def update_title_author(cls, book_id, new_title=None, new_author=None):

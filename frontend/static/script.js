@@ -201,7 +201,6 @@ async function deleteBook(bookId) {
         if (!response.ok) {
             throw new Error(await response.text() || 'Erro ao excluir livro');
         } else {
-            alert('Livro excluído com sucesso');
             fetchBooksAndPopulate();
         }
 
@@ -259,6 +258,9 @@ async function updateBook(book_id, title, author, num_copies) {
                 throw new Error(await response.text() || 'Erro ao atualizar livro');
             } else {
                 fetchBooksAndPopulate();
+
+                clearAuthorsSelect();
+
                 fetchAuthors();
             }
 
@@ -270,4 +272,9 @@ async function updateBook(book_id, title, author, num_copies) {
     } catch (error) {
         alert('ERRO: ' + error.message);
     }
+}
+
+function clearAuthorsSelect() {
+    const authorsSelect = document.getElementById('authorSelect');
+    authorsSelect.innerHTML = '';
 }

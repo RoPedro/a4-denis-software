@@ -1,8 +1,3 @@
-from db_connect import engine
-from sqlalchemy import text
-
-connection = engine.connect()
-
 class Book:
     def __init__(self, title, author, num_copies, id=None):
         self.id = id

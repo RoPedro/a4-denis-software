@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from db_livro import Book
+from sqlalchemy.orm import sessionmaker
 import logging
 
 # Inicializando LOGS
@@ -7,72 +8,66 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BookDAO:
-    def __init__(self, connection):
-        self.connection = connection
+    def __init__(self, engine):
+        self.engine = engine
+        self.Session = sessionmaker(bind=engine)
         
-    def list_all(self): # Retorna uma lista com todos os livros
+    def list_all(self):
+        session = self.Session()
         try:
-            query = text("SELECT title, author, num_copies, id FROM books;")
-            result = self.connection.execute(query)
-            
-            # Popula uma lista com os livros
-            book_list = []
-            for row in result:
-                book = Book(*row)
-                book_list.append(book)
-            
-            logger.info(f"Tabela recuperada com sucesso." )
+            query = text("SELECT id, title, author, num_copies FROM books;")
+            result = session.execute(query).fetchall()
+            book_list = [Book(id=row[0], title=row[1], author=row[2], num_copies=row[3]) for row in result]
+            logger.info("Tabela recuperada com sucesso.")
             return book_list
-            
         except Exception as e:
             logger.error(f"Erro ao recuperar a tabela: {e}")
             print(e)
             return []
+        finally:
+            session.close()
         
-    def list_authors(self): # Retorna uma lista com todos os autores
+    def list_authors(self):
+        session = self.Session()
         try:
-            # Inicializando LOGS
-            logging.basicConfig(level=logging.INFO)
-             
             query = text("SELECT DISTINCT author FROM books;")
-            result = self.connection.execute(query)
-            
-            # Popula uma lista com os autores
-            authors = [{"id": i + 1, "name": author[0]} for i, author in enumerate(result)] 
+            result = session.execute(query).fetchall()
+            authors = [{"id": i + 1, "name": author[0]} for i, author in enumerate(result)]
+            logger.info("Autores recuperados com sucesso.")
             return authors
-        
         except Exception as e:
-            logging.error(f"Erro ao recuperar a tabela: {e}")
+            logger.error(f"Erro ao recuperar a lista de autores: {e}")
             print(e)
             return []
-    
+        finally:
+            session.close()
+            
     def list_books_by_author(self, author_name):
+        session = self.Session()
         try:
             logger.info(f"Trying to connect to database...")
-            query = text("SELECT title, author, num_copies, id FROM books WHERE author = :author_name;")
-            result = self.connection.execute(query, {"author_name": author_name})
-            logger.info(f"Database connection established successfully.")
-
-            book_list = [Book(*row) for row in result]
+            query = text("SELECT id, title, author, num_copies FROM books WHERE author = :author_name;")
+            result = session.execute(query, {"author_name": author_name}).fetchall()
+            book_list = [Book(id=row[0], title=row[1], author=row[2], num_copies=row[3]) for row in result]
             logger.info(f"Retrieved {len(book_list)} books for author '{author_name}'.")
             return book_list
-
         except Exception as e:
             logger.error(f"Error retrieving books for author '{author_name}': {e}")
             return []
-    
+        finally:
+            session.close()
+             
     # Adiciona um novo livro 
     def add_book(self, title, author, num_copies):
+        session = self.Session()
         transaction = None
         try:
             query = text(
                 "INSERT INTO books (title, author, num_copies) VALUES (:title, :author, :num_copies);"
             )
-            # Inicia a transação apenas se nenhuma transação estiver ativa
-            if not self.connection.in_transaction():
-                transaction = self.connection.begin()
-            
-            self.connection.execute(
+            transaction = session.begin()
+
+            session.execute(
                 query,
                 {
                     "title": title,
@@ -80,62 +75,63 @@ class BookDAO:
                     "num_copies": num_copies,
                 },
             )
-            
-            if transaction:
-                transaction.commit()  # Confirma a transação apenas se foi iniciada
-                logger.info(f"Novo livro adicionado com sucesso.")
+
+            # Confirma a transação
+            transaction.commit()
+            logger.info(f"Novo livro adicionado com sucesso.")
             return True
         except Exception as e:
             if transaction:
-                transaction.rollback()  # Cancela a transação apenas se foi iniciada
+                transaction.rollback() # Rollback pra manter a integridade caso falhe 
                 logger.error(f"ROLLBACK acionado, erro adicionando novo livro: {e}")
-            print(f"Erro adicionando livro: {e}")
+            logger.error(f"Erro adicionando livro: {e}")
             return False
+        finally:
+            session.close()
     
     # Exclui um livro pelo ID
     def delete_book(self, book_id):
+        session = self.Session()
         transaction = None
         try:
             query = text("DELETE FROM books WHERE id = :book_id")
-            
-            if not self.connection.in_transaction():
-                transaction = self.connection.begin()
-            
+
+            if not session.in_transaction():
+                transaction = session.begin()
+
             # Executa a query
-            result = self.connection.execute(query, {"book_id": book_id})
-            
-            # Checa se algum registro foi modificado 
+            result = session.execute(query, {"book_id": book_id})
+
+            # Checa se algum registro foi modificado
             if result.rowcount == 0:
                 return False
             else:
-                if transaction: # Confirma a transação apenas se foi iniciada
-                    transaction.commit() # Confirma a transação
-                    logger.info(f"Novo livro excluído com sucesso.")
+                if transaction:  # Confirma a transação apenas se foi iniciada
+                    transaction.commit()  # Confirma a transação
+                    logger.info(f"Livro com ID {book_id} excluído com sucesso.")
                 return True
         except Exception as e:
-            print(f"Error deleting book by ID: {e}")
-            logger.error(f"ROLLBACK acionado, erro excluindo novo livro: {e}")
-            transaction.rollback()
-            return False 
+            print(f"Erro excluindo livro pelo ID: {e}")
+            logger.error(f"ROLLBACK acionado, erro excluindo livro pelo ID {book_id}: {e}")
+            if transaction:
+                transaction.rollback()
+            return False
+        finally:
+            session.close()
+
     
     # Atualiza um livro (Todos os dados são opcionais, atualização parcial permitida)
-    def update_book(self,
-                    book_id,
-                    new_title=None,
-                    new_author=None,
-                    new_num_copies=None
-                    ):
-        transaction = None 
+    def update_book(self, book_id, new_title=None, new_author=None, new_num_copies=None):
+        session = self.Session()
         try:
             updates = []
             params = {"book_id": book_id}
-
             if new_title is not None:
                 updates.append("title = :new_title")
-                params["new_title"] = new_title.replace("'", "''")
+                params["new_title"] = new_title
             if new_author is not None:
                 updates.append("author = :new_author")
-                params["new_author"] = new_author.replace("'", "''")
+                params["new_author"] = new_author
             if new_num_copies is not None:
                 updates.append("num_copies = :new_num_copies")
                 params["new_num_copies"] = new_num_copies
@@ -143,20 +139,16 @@ class BookDAO:
             if updates:
                 query_string = f"UPDATE books SET {', '.join(updates)} WHERE id = :book_id"
                 query = text(query_string)
-                
-                if not self.connection.in_transaction(): 
-                    transaction = self.connection.begin()
-                    
-                self.connection.execute(query, params)
-                
-                if transaction:
-                    transaction.commit()
-                    logger.info(f"Novo livro atualizado com sucesso.")
+                session.execute(query, params)
+                session.commit()
+                logger.info(f"Livro com ID {book_id} atualizado com sucesso.")
                 return True
+            else:
+                logger.warning(f"Nenhuma atualização fornecida para o livro com ID {book_id}.")
+                return False
         except Exception as e:
-            print(f"Erro atualizando livro: {e}")
-            if transaction:
-                transaction.rollback()
-                logger.error(f"ROLLBACK acionado, erro atualizando livro: {e}")
+            session.rollback()
+            logger.error(f"ROLLBACK acionado, erro atualizando livro: {e}")
             return False
-        
+        finally:
+            session.close()

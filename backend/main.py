@@ -2,9 +2,9 @@ from flask import Flask, render_template, jsonify, request
 from db_livro import Book
 from db_connect import engine
 from db_daos import BookDAO
+import logging
 
-connection = engine.connect()
-book_dao = BookDAO(connection)
+book_dao = BookDAO(engine)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
@@ -44,6 +44,9 @@ def list_by_author_json():
 # Rota para inserção de livros.
 @app.route('/insert_json', methods=['POST'])
 def insert_json():
+    logging.info(f"Requisição dos headers: {request.headers}")
+    logging.info(f"Requisição dos dados: {request.data}")
+    
     # Recebe os dados do formulário
     title = request.form['title']
     author = request.form['author']

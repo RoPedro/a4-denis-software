@@ -2,15 +2,16 @@ import logging
 from flask import Flask, render_template, jsonify, request 
 from db_livro import Book
 from db_connect import engine
-from db_daos import BookDAO
+import db_daos as DAOS
 
-book_dao = BookDAO(engine)
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     force=True
 )
 logger = logging.getLogger(__name__)
+
+book_dao = DAOS.BookDAO(engine)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
@@ -23,7 +24,7 @@ def index():
 # Rota para retornar a lista de livros.
 @app.route('/books_json')
 def books_json():
-    books = book_dao.list_all() 
+    books = book_dao.list_all()
     return jsonify([{
         'id': book.id,
         'title': book.title,

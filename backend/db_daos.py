@@ -1,10 +1,8 @@
+import logging
 from sqlalchemy import text
 from db_livro import Book
 from sqlalchemy.orm import sessionmaker
-import logging
 
-# Inicializando LOGS
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BookDAO:
@@ -45,7 +43,7 @@ class BookDAO:
     def list_books_by_author(self, author_name):
         session = self.Session()
         try:
-            logger.info(f"Trying to connect to database...")
+            logger.info("Trying to connect to database...")
             query = text("SELECT id, title, author, num_copies FROM books WHERE author = :author_name;")
             result = session.execute(query, {"author_name": author_name}).fetchall()
             book_list = [Book(id=row[0], title=row[1], author=row[2], num_copies=row[3]) for row in result]
@@ -78,7 +76,13 @@ class BookDAO:
 
             # Confirma a transação
             transaction.commit()
-            logger.info(f"Novo livro adicionado com sucesso.")
+            logger.info("Novo livro adicionado com sucesso.")
+            logger.debug(
+                f"""Livro adicionado - 
+                Título: {title},
+                Autor: {author},
+                Número de Cópias: {num_copies}"""
+            )
             return True
         except Exception as e:
             if transaction:
@@ -111,8 +115,8 @@ class BookDAO:
                     logger.info(f"Livro com ID {book_id} excluído com sucesso.")
                 return True
         except Exception as e:
-            print(f"Erro excluindo livro pelo ID: {e}")
-            logger.error(f"ROLLBACK acionado, erro excluindo livro pelo ID {book_id}: {e}")
+            logger.error(f"Erro excluindo livro pelo ID: {e}")
+            logger.info(f"ROLLBACKING transaction for book ID: {book_id}")
             if transaction:
                 transaction.rollback()
             return False

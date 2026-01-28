@@ -104,16 +104,12 @@ class BookDAO:
                 transaction = session.begin()
 
             # Executa a query
-            result = session.execute(query, {"book_id": book_id})
+            session.execute(query, {"book_id": book_id})
 
-            # Checa se algum registro foi modificado
-            if result.rowcount == 0:
-                return False
-            else:
-                if transaction:  # Confirma a transação apenas se foi iniciada
-                    transaction.commit()  # Confirma a transação
-                    logger.info(f"Livro com ID {book_id} excluído com sucesso.")
-                return True
+            if transaction:  # Confirma a transação apenas se foi iniciada
+                transaction.commit()  # Confirma a transação
+                logger.info(f"Livro com ID {book_id} excluído com sucesso.")
+            return True
         except Exception as e:
             logger.error(f"Erro excluindo livro pelo ID: {e}")
             logger.info(f"ROLLBACKING transaction for book ID: {book_id}")

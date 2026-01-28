@@ -1,10 +1,16 @@
+import logging
 from flask import Flask, render_template, jsonify, request 
 from db_livro import Book
 from db_connect import engine
 from db_daos import BookDAO
-import logging
 
 book_dao = BookDAO(engine)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True
+)
+logger = logging.getLogger(__name__)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')

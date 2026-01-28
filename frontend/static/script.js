@@ -231,9 +231,19 @@ async function updateBook(book_id, title, author, num_copies) {
     const escapedTitle = title.replace(/'/g, "''");
     const escapedAuthor = author.replace(/'/g, "''");
     
-    const titleInput = prompt('Título:', escapedTitle);
-    const authorInput = prompt('Autor:', escapedAuthor); 
-    const copiesInput = prompt('Quantidade de Cópias:', num_copies);
+    let titleInput = prompt('Título:', escapedTitle);
+    console.log(titleInput);
+    let authorInput = prompt('Autor:', escapedAuthor); 
+    console.log(authorInput);
+    let copiesInput = prompt('Quantidade de Cópias:', num_copies);
+    console.log(copiesInput);
+
+
+    if (copiesInput !== null && isNaN(copiesInput)) {
+        alert('Quantidade de cópias inválida, por favor insira apenas números.');
+        copiesInput = prompt('Quantidade de Cópias:', num_copies);
+        console.log(copiesInput);
+    }
 
     // Armazena o que será atualizado
     const updateData = {};

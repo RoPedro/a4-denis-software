@@ -239,12 +239,6 @@ async function updateBook(book_id, title, author, num_copies) {
     console.log(copiesInput);
 
 
-    if (copiesInput !== null && isNaN(copiesInput)) {
-        alert('Quantidade de cópias inválida, por favor insira apenas números.');
-        copiesInput = prompt('Quantidade de Cópias:', num_copies);
-        console.log(copiesInput);
-    }
-
     // Armazena o que será atualizado
     const updateData = {};
 

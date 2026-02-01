@@ -1,8 +1,8 @@
 import logging
 from flask import Flask, render_template, jsonify, request 
-from db_livro import Book
-from db_connect import engine
-import db_daos as DAOS
+from backend.db_livro import Book
+from backend.db_connect import engine
+import backend.db_daos as DAOS
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 book_dao = DAOS.BookDAO(engine)
 
 # Inicia o app com rotas para o HTML e Javascript.
-app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
+app = Flask(__name__, template_folder='/frontend/templates', static_folder='/frontend/static')
 
 # Rota principal para renderizar o HTML.
 @app.route('/')
@@ -62,6 +62,8 @@ def insert_json():
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
     success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
+    
+    logger.info(f"[INFO] full URL: {request.url}")
    
     # Adereça um resultado dependendo do sucesso da transação 
     if success:

@@ -10,3 +10,7 @@ user=postgres
 password=admin123  
 database=biblioteca  
 port=5432  
+
+## TO RUN:
+`flask run --host 0.0.0.0 --port 5000`
+`flask --debug run --host 0.0.0.0 --port 5000`

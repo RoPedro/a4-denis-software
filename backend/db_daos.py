@@ -1,6 +1,6 @@
 import logging
 from sqlalchemy import text
-from db_livro import Book
+from backend.db_livro import Book
 from sqlalchemy.orm import sessionmaker
 
 logger = logging.getLogger(__name__)

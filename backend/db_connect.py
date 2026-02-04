@@ -14,5 +14,5 @@ logger.debug(f"DB URL: {db_url}")
 
 engine = create_engine(db_url)
 if not database_exists(engine.url):
-    logger.error("Database does not exist.")
+    logger.error("[ERROR] Database does not exist.")
     

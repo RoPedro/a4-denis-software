@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 book_dao = DAOS.BookDAO(engine)
 
-# Inicia o app com rotas para o HTML e Javascript.
-app = Flask(__name__, template_folder='/frontend/templates', static_folder='/frontend/static')
 app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')
 
 # Rota principal para renderizar o HTML.
@@ -23,9 +21,9 @@ app = Flask(__name__, template_folder='frontend/templates', static_folder='front
 @require_db
 def index():
     return render_template('index.html')
-
+    
 # Rota para retornar a lista de livros.
-@app.route('/books_json')
+@app.route('/api/v1/books')
 @require_db
 def books_json():
     books = book_dao.list_all()
@@ -36,13 +34,13 @@ def books_json():
         'num_copies': book.num_copies
     } for book in books])
     
-@app.route('/authors_json', methods=['GET'])
+@app.route('/api/v1/authors', methods=['GET'])
 @require_db
 def authors_json():
     authors = book_dao.list_authors()
     return jsonify(authors)
 
-@app.route('/books_by_author_json', methods=['GET'])
+@app.route('/api/v1/by_author', methods=['GET'])
 @require_db
 def list_by_author_json():
     author_name = request.args.get('author_name')
@@ -55,7 +53,7 @@ def list_by_author_json():
     } for book in books])
 
 # Rota para inserção de livros.
-@app.route('/insert_json', methods=['POST'])
+@app.route('/api/v1/insert', methods=['POST'])
 @require_db
 def insert_json():
     logging.info(f"Requisição dos headers: {request.headers}")
@@ -79,7 +77,7 @@ def insert_json():
         return jsonify({'status': 'error', 'message': 'Erro ao adicionar o livro.'})
 
 # Roda para exclusão de livros
-@app.route('/delete_json', methods=['DELETE'])
+@app.route('/api/v1/delete', methods=['DELETE'])
 @require_db
 def delete_book_by_id():
     data = request.get_json()
@@ -101,7 +99,7 @@ def delete_book_by_id():
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
-@app.route('/update_book_json' , methods=['PUT'])
+@app.route('/api/v1/update_book' , methods=['PUT'])
 @require_db
 def update_book():
     data = request.get_json()
@@ -138,6 +136,5 @@ def update_book():
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
-# Habilita o Debug mode
 if __name__ == '__main__':
     app.run(debug=True)

@@ -33,6 +33,14 @@ function fetchBooksAndPopulate() {
             console.log(books);
             const bookList = document.getElementById('book_tbody');
 
+            if (books.length == 0) {
+                const mainContainer = document.getElementById('booksContainer');
+                const errPrghp = document.createElement('p');
+                errPrghp.className = 'alert alert-warning text-center'
+                errPrghp.innerHTML = `Nenhum livro encontrado, cheque a conexão com o banco de dados ou adicione um livro.`
+                mainContainer.appendChild(errPrghp)
+            }
+
             bookList.innerHTML = '';
 
             books.forEach(book => { // Itera sobre a lista de livros e adiciona ao DOM

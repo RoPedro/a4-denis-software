@@ -3,6 +3,7 @@ from flask import Flask, render_template, jsonify, request
 from backend.db_livro import Book
 from backend.db_connect import engine
 import backend.db_daos as DAOS
+from backend.decorators import require_db
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -19,11 +20,13 @@ app = Flask(__name__, template_folder='frontend/templates', static_folder='front
 
 # Rota principal para renderizar o HTML.
 @app.route('/')
+@require_db
 def index():
     return render_template('index.html')
 
 # Rota para retornar a lista de livros.
 @app.route('/books_json')
+@require_db
 def books_json():
     books = book_dao.list_all()
     return jsonify([{
@@ -34,11 +37,13 @@ def books_json():
     } for book in books])
     
 @app.route('/authors_json', methods=['GET'])
+@require_db
 def authors_json():
     authors = book_dao.list_authors()
     return jsonify(authors)
 
 @app.route('/books_by_author_json', methods=['GET'])
+@require_db
 def list_by_author_json():
     author_name = request.args.get('author_name')
     books = book_dao.list_books_by_author(author_name)
@@ -51,6 +56,7 @@ def list_by_author_json():
 
 # Rota para inserção de livros.
 @app.route('/insert_json', methods=['POST'])
+@require_db
 def insert_json():
     logging.info(f"Requisição dos headers: {request.headers}")
     logging.info(f"Requisição dos dados: {request.data}")
@@ -74,6 +80,7 @@ def insert_json():
 
 # Roda para exclusão de livros
 @app.route('/delete_json', methods=['DELETE'])
+@require_db
 def delete_book_by_id():
     data = request.get_json()
     if data is None:
@@ -95,6 +102,7 @@ def delete_book_by_id():
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
 @app.route('/update_book_json' , methods=['PUT'])
+@require_db
 def update_book():
     data = request.get_json()
     if data is None:

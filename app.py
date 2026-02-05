@@ -15,6 +15,7 @@ book_dao = DAOS.BookDAO(engine)
 
 # Inicia o app com rotas para o HTML e Javascript.
 app = Flask(__name__, template_folder='/frontend/templates', static_folder='/frontend/static')
+app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')
 
 # Rota principal para renderizar o HTML.
 @app.route('/')

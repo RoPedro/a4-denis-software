@@ -115,13 +115,13 @@ def update_book():
         try:
             book_id = int(book_id)
         except ValueError:
-            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
+            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 404
 
     if not isinstance(new_num_copies, int):
         try:
             new_num_copies = int(new_num_copies)
         except ValueError:
-            return jsonify({'status': 'error', 'message': 'Número de cópias precisa ser inteiro'})
+            return jsonify({'status': 'error', 'message': 'Número de cópias precisa ser inteiro'}), 400
         
     # Tentativa de escapar caractéres especiais 
     if new_title:

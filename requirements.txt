@@ -1,6 +1,7 @@
+pytest
 Flask
 SQLAlchemy
-psycopg2-binary
+SQLAlchemy-utils
 Flask-Migrate
 Flask-SQLAlchemy
 python-dotenv

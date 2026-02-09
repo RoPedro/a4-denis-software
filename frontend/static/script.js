@@ -1,3 +1,5 @@
+const API_URL = `/api/v1`
+
 // Espera o DOM carregar completamente
 document.addEventListener('DOMContentLoaded', () => {
     fetchBooksAndPopulate();
@@ -22,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Função para buscar os livros e popular o DOM
-
 function fetchBooksAndPopulate() {
-    fetch('/books_json')
+    fetch(`${API_URL}/books`)
         .then(response => {
             console.log('Response status:', response.status);
             return response.json()
@@ -32,6 +33,14 @@ function fetchBooksAndPopulate() {
         .then(books => {
             console.log(books);
             const bookList = document.getElementById('book_tbody');
+
+            if (books.length == 0) {
+                const mainContainer = document.getElementById('booksContainer');
+                const errPrghp = document.createElement('p');
+                errPrghp.className = 'alert alert-warning text-center'
+                errPrghp.innerHTML = `Nenhum livro encontrado, cheque a conexão com o banco de dados ou adicione um livro.`
+                mainContainer.appendChild(errPrghp)
+            }
 
             bookList.innerHTML = '';
 
@@ -51,7 +60,7 @@ function fetchBooksAndPopulate() {
 }
 
 function fetchAuthors() {
-    fetch('/authors_json')
+    fetch(`${API_URL}/authors`)
         .then(response => {
             return response.json();
         })
@@ -79,7 +88,7 @@ function list_books_by_author() {
 }
 
 function fetchBooksByAuthor(authorName) {
-    fetch(`books_by_author_json?author_name=${authorName}`)
+    fetch(`${API_URL}/by_author?author_name=${authorName}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Erro na requisição ${response.status}`);
@@ -119,7 +128,7 @@ function adicionarLivro() {
     formData.append('num_copies', numCopiesInput.value);
 
     // Send POST request to the server
-    fetch('/insert_json', {
+    fetch(`${API_URL}/insert`, {
         method: 'POST',
         body: formData
     })
@@ -155,7 +164,7 @@ async function deleteBook() {
     const dummyId = 13;
 
     try {
-        const response = await fetch('/delete_json', { // Envia o ID para o servidor
+        const response = await fetch(`${API_URL}/delete`, { // Envia o ID para o servidor
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -190,7 +199,7 @@ function confirmDelete(bookId, bookTitle) {
 
 async function deleteBook(bookId) {
     try {
-        const response = await fetch('/delete_json', { // Envia o ID para o servidor
+        const response = await fetch(`${API_URL}/delete`, { // Envia o ID para o servidor
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -231,9 +240,13 @@ async function updateBook(book_id, title, author, num_copies) {
     const escapedTitle = title.replace(/'/g, "''");
     const escapedAuthor = author.replace(/'/g, "''");
     
-    const titleInput = prompt('Título:', escapedTitle);
-    const authorInput = prompt('Autor:', escapedAuthor); 
-    const copiesInput = prompt('Quantidade de Cópias:', num_copies);
+    let titleInput = prompt('Título:', escapedTitle);
+    console.log(titleInput);
+    let authorInput = prompt('Autor:', escapedAuthor); 
+    console.log(authorInput);
+    let copiesInput = prompt('Quantidade de Cópias:', num_copies);
+    console.log(copiesInput);
+
 
     // Armazena o que será atualizado
     const updateData = {};
@@ -246,7 +259,7 @@ async function updateBook(book_id, title, author, num_copies) {
     try {
         // Manda request apenas se existir algo a se atualizar.
         if (Object.keys(updateData).length > 0) {
-            const response = await fetch('/update_book_json', {
+            const response = await fetch(`${API_URL}/update_book`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

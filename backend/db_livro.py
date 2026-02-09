@@ -1,8 +1,15 @@
+import logging
+
+logger = logging.getLogger(__name__)
 class Book:
     def __init__(self, title, author, num_copies, id=None):
         self.id = id
         self.title = title
         self.author = author
+        
+        if not isinstance(num_copies, int):
+            logger.error("num_copies must be an integer")
+            raise TypeError("num_copies must be an integer")
         self.num_copies = num_copies
         
     def __repr__(self):

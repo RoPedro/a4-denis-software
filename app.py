@@ -1,23 +1,32 @@
-from flask import Flask, render_template, jsonify, request 
-from db_livro import Book
-from db_connect import engine
-from db_daos import BookDAO
 import logging
+from flask import Flask, render_template, jsonify, request 
+from backend.db_livro import Book
+from backend.db_connect import engine
+import backend.db_daos as DAOS
+from backend.decorators import require_db
 
-book_dao = BookDAO(engine)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True
+)
+logger = logging.getLogger(__name__)
 
-# Inicia o app com rotas para o HTML e Javascript.
-app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
+book_dao = DAOS.BookDAO(engine)
+
+app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')
 
 # Rota principal para renderizar o HTML.
 @app.route('/')
+@require_db
 def index():
     return render_template('index.html')
-
+    
 # Rota para retornar a lista de livros.
-@app.route('/books_json')
+@app.route('/api/v1/books')
+@require_db
 def books_json():
-    books = book_dao.list_all() 
+    books = book_dao.list_all()
     return jsonify([{
         'id': book.id,
         'title': book.title,
@@ -25,12 +34,14 @@ def books_json():
         'num_copies': book.num_copies
     } for book in books])
     
-@app.route('/authors_json', methods=['GET'])
+@app.route('/api/v1/authors', methods=['GET'])
+@require_db
 def authors_json():
     authors = book_dao.list_authors()
     return jsonify(authors)
 
-@app.route('/books_by_author_json', methods=['GET'])
+@app.route('/api/v1/by_author', methods=['GET'])
+@require_db
 def list_by_author_json():
     author_name = request.args.get('author_name')
     books = book_dao.list_books_by_author(author_name)
@@ -42,7 +53,8 @@ def list_by_author_json():
     } for book in books])
 
 # Rota para inserção de livros.
-@app.route('/insert_json', methods=['POST'])
+@app.route('/api/v1/insert', methods=['POST'])
+@require_db
 def insert_json():
     logging.info(f"Requisição dos headers: {request.headers}")
     logging.info(f"Requisição dos dados: {request.data}")
@@ -55,6 +67,8 @@ def insert_json():
     # Cria um novo livro e registra se foi bem sucediddo
     new_book = Book(title=title, author=author, num_copies=num_copies)
     success = book_dao.add_book(new_book.title, new_book.author, new_book.num_copies)
+    
+    logger.info(f"[INFO] full URL: {request.url}")
    
     # Adereça um resultado dependendo do sucesso da transação 
     if success:
@@ -63,7 +77,8 @@ def insert_json():
         return jsonify({'status': 'error', 'message': 'Erro ao adicionar o livro.'})
 
 # Roda para exclusão de livros
-@app.route('/delete_json', methods=['DELETE'])
+@app.route('/api/v1/delete', methods=['DELETE'])
+@require_db
 def delete_book_by_id():
     data = request.get_json()
     if data is None:
@@ -84,7 +99,8 @@ def delete_book_by_id():
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
-@app.route('/update_book_json' , methods=['PUT'])
+@app.route('/api/v1/update_book' , methods=['PUT'])
+@require_db
 def update_book():
     data = request.get_json()
     if data is None:
@@ -99,8 +115,14 @@ def update_book():
         try:
             book_id = int(book_id)
         except ValueError:
-            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 400
+            return jsonify({'status': 'error', 'message': 'ID do livro invalido'}), 404
 
+    if not isinstance(new_num_copies, int):
+        try:
+            new_num_copies = int(new_num_copies)
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'Número de cópias precisa ser inteiro'}), 400
+        
     # Tentativa de escapar caractéres especiais 
     if new_title:
         new_title = new_title.replace("'", "''")
@@ -114,6 +136,5 @@ def update_book():
     else:
         return jsonify({'status': 'error', 'message': 'Livro não encontrado'}), 404
 
-# Habilita o Debug mode
 if __name__ == '__main__':
     app.run(debug=True)

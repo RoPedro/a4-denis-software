@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists
 from dotenv import load_dotenv
 import os
+from backend.db_livro import Base
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ db_url = (
 
 logger.debug(f"DB URL: {db_url}")
 
-engine = create_engine(db_url)
+engine = create_engine(db_url, echo=True)
 if not database_exists(engine.url):
     logger.error("[ERROR] Database does not exist.")
-    
+   
+def init_db():
+    Base.metadata.create_all(bind=engine) 

@@ -2,6 +2,7 @@ import logging
 from sqlalchemy import text
 from backend.db_livro import Book
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select, insert, delete, update
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,8 @@ class BookDAO:
     def list_all(self):
         session = self.Session()
         try:
-            query = text("SELECT id, title, author, num_copies FROM books;")
-            result = session.execute(query).fetchall()
-            book_list = [Book(id=row[0], title=row[1], author=row[2], num_copies=row[3]) for row in result]
+            stmt = select(Book)
+            book_list = session.execute(stmt).scalars().all() # scalars() because only 1 entity is fetchand execute works with tuples by default.
             logger.info("Tabela recuperada com sucesso.")
             return book_list
         except Exception as e:
@@ -28,8 +28,9 @@ class BookDAO:
     def list_authors(self):
         session = self.Session()
         try:
-            query = text("SELECT DISTINCT author FROM books;")
-            result = session.execute(query).fetchall()
+            stmt = select(Book.author).distinct()
+            result = session.execute(stmt).all() # We expect tuples here so no scalars().
+            logger.debug(f"AUTHORS (Truncated): {str(result)[:20]}")
             authors = [{"id": i + 1, "name": author[0]} for i, author in enumerate(result)]
             logger.info("Autores recuperados com sucesso.")
             return authors
@@ -43,10 +44,8 @@ class BookDAO:
     def list_books_by_author(self, author_name):
         session = self.Session()
         try:
-            logger.info("Trying to connect to database...")
-            query = text("SELECT id, title, author, num_copies FROM books WHERE author = :author_name;")
-            result = session.execute(query, {"author_name": author_name}).fetchall()
-            book_list = [Book(id=row[0], title=row[1], author=row[2], num_copies=row[3]) for row in result]
+            stmt = select(Book).filter_by(author = author_name) # Use = to assign author to author_name
+            book_list = session.execute(stmt).scalars().all()
             logger.info(f"Retrieved {len(book_list)} books for author '{author_name}'.")
             return book_list
         except Exception as e:
@@ -60,22 +59,10 @@ class BookDAO:
         session = self.Session()
         transaction = None
         try:
-            query = text(
-                "INSERT INTO books (title, author, num_copies) VALUES (:title, :author, :num_copies);"
-            )
             transaction = session.begin()
-
-            session.execute(
-                query,
-                {
-                    "title": title,
-                    "author": author,
-                    "num_copies": num_copies,
-                },
-            )
-
-            # Confirma a transação
-            transaction.commit()
+            
+            stmt = insert(Book).values(title = title, author = author, num_copies = num_copies)
+            session.execute(stmt)
             logger.info("Novo livro adicionado com sucesso.")
             logger.debug(
                 f"""Livro adicionado - 
@@ -83,6 +70,8 @@ class BookDAO:
                 Autor: {author},
                 Número de Cópias: {num_copies}"""
             )
+            
+            transaction.commit()
             return True
         except Exception as e:
             if transaction:
@@ -98,13 +87,12 @@ class BookDAO:
         session = self.Session()
         transaction = None
         try:
-            query = text("DELETE FROM books WHERE id = :book_id")
-
             if not session.in_transaction():
                 transaction = session.begin()
 
             # Executa a query
-            session.execute(query, {"book_id": book_id})
+            stmt = delete(Book).where(Book.id == book_id) # Use == because we need to match, not assign.
+            session.execute(stmt)
 
             if transaction:  # Confirma a transação apenas se foi iniciada
                 transaction.commit()  # Confirma a transação
@@ -120,32 +108,14 @@ class BookDAO:
             session.close()
 
     
-    # Atualiza um livro (Todos os dados são opcionais, atualização parcial permitida)
+    # All arguments are optional, so to enable partial updates we set all new_* to None.
     def update_book(self, book_id, new_title=None, new_author=None, new_num_copies=None):
         session = self.Session()
         try:
-            updates = []
-            params = {"book_id": book_id}
-            if new_title is not None:
-                updates.append("title = :new_title")
-                params["new_title"] = new_title
-            if new_author is not None:
-                updates.append("author = :new_author")
-                params["new_author"] = new_author
-            if new_num_copies is not None:
-                updates.append("num_copies = :new_num_copies")
-                params["new_num_copies"] = new_num_copies
-
-            if updates:
-                query_string = f"UPDATE books SET {', '.join(updates)} WHERE id = :book_id"
-                query = text(query_string)
-                session.execute(query, params)
-                session.commit()
-                logger.info(f"Livro com ID {book_id} atualizado com sucesso.")
-                return True
-            else:
-                logger.warning(f"Nenhuma atualização fornecida para o livro com ID {book_id}.")
-                return False
+            stmt = update(Book).where(Book.id == book_id).values(title = new_title, author = new_author, num_copies = new_num_copies)
+            session.execute(stmt)
+            session.commit()
+            return True
         except Exception as e:
             session.rollback()
             logger.error(f"ROLLBACK acionado, erro atualizando livro: {e}")

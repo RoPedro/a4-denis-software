@@ -1,8 +1,8 @@
 import logging
+import os
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists
 from dotenv import load_dotenv
-import os
 from backend.db_livro import Base
 
 logger = logging.getLogger(__name__)
@@ -15,13 +15,13 @@ db_url = (
     f"{os.getenv('POSTGRES_PASSWORD')}@"
     f"{os.getenv('POSTGRES_HOST')}:"
     f"{os.getenv('POSTGRES_PORT')}/"
-    f"{os.getenv('POSTGRES_DB')}"
 )
 
-logger.debug(f"DB URL: {db_url}")
+DB_NAME = os.getenv('POSTGRES_DB') # Separate DB name from the URL so we can have a test DB
+engine = create_engine(f"{db_url}{DB_NAME}", echo=True)
 
-engine = create_engine(db_url, echo=True)
 if not database_exists(engine.url):
+    logger.debug(f"DB URL: {db_url}{os.getenv('POSTGRES_DB')}")
     logger.error("[ERROR] Database does not exist.")
    
 def init_db():
